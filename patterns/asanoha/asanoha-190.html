@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<!--
+  花ブロック 製作図 ｜ 麻の葉（四つ組）190
+  ============================================================
+  template/template.html を複製し、中身（SVG 図形・viewBox・表題欄の値）だけ差し替え。
+  図面枠・表題欄・共通 defs（寸法マーカー a1/a1i/a2/a2i）は未変更。
+  座標系: 1 user unit = 1mm（実寸描画）。viewBox 幅 = 127.5mm × 縮尺。
+    ① 単体正面図  : viewBox 幅 318.75 → SCALE 1:2.5
+    ② 2×2 製作図  : viewBox 幅 637.5  → SCALE 1:5
+  幾何: patterns/asanoha/asanoha-base.svg 準拠（390 のスケール版。壁厚20・開口率は固有値）。
+  内心オフセット = 辺長×0.29289 / 0.70711 = 55.65 / 134.35。
+  ============================================================
+-->
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>花ブロック 製作図 ｜ 麻の葉 190</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink:    #1b1a17;   /* 主線・本文 */
+    --ink-2:  #6f6c63;   /* 副次ラベル */
+    --hair:   #cbc7bc;   /* ヘアライン */
+    --hair-2: #e6e2d8;   /* 極薄罫 */
+    --grid:   #efebe1;   /* 方眼 */
+    --paper:  #ffffff;
+    --accent: #b2392c;   /* 朱 */
+    --mono: 'IBM Plex Mono', ui-monospace, monospace;
+    --jp:   'Noto Sans JP', sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: var(--jp); color: var(--ink);
+    -webkit-font-smoothing: antialiased; text-rendering: geometricPrecision;
+    background:
+      radial-gradient(circle at 30% 20%, #e9e6dd, #d7d3c7 70%);
+    min-height: 100vh;
+  }
+
+  @page { size: A4 landscape; margin: 0; }
+  @media print {
+    /* A4 ぴったりに固定し、端数あふれによる空白2ページ目を防ぐ */
+    html, body { width: 297mm; height: 210mm; min-height: 0; margin: 0; padding: 0; overflow: hidden; background: #fff; }
+    .sheet-wrap { padding: 0; margin: 0; }
+    .sheet { box-shadow: none !important; margin: 0; }
+    .grain { display: none; }
+  }
+
+  .sheet-wrap { display: flex; justify-content: center; }
+  @media screen { .sheet-wrap { padding: 28px 0 56px; } }
+
+  /* ===== A4 シート ===== */
+  .sheet {
+    position: relative;
+    width: 297mm; height: 210mm;
+    padding: 6mm;                 /* 図面枠の外マージン（フロー基準で印刷安定）*/
+    flex: none;
+    background: var(--paper);
+    box-shadow: 0 24px 70px rgba(40,36,28,.38);
+    overflow: hidden;
+    /* 極薄の方眼（製図用紙感） */
+    background-image:
+      linear-gradient(var(--grid) .15mm, transparent .15mm),
+      linear-gradient(90deg, var(--grid) .15mm, transparent .15mm);
+    background-size: 5mm 5mm;
+    background-position: center;
+  }
+
+  /* 微粒子オーバーレイ（画面のみ） */
+  .grain {
+    position: absolute; inset: 0; pointer-events: none; opacity: .035; mix-blend-mode: multiply;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  /* ===== 図面枠 ===== */
+  .frame {
+    position: relative; height: 100%;
+    border: .5mm solid var(--ink);
+    display: grid; grid-template-rows: 1fr auto;
+  }
+  /* 二重枠（内側のヘアライン） */
+  .frame::before {
+    content: ""; position: absolute; inset: 1.4mm; border: .2mm solid var(--ink); pointer-events: none;
+  }
+
+  /* センタリングマーク（枠中央の短いティック） */
+  .cmark { position: absolute; background: var(--ink); z-index: 2; }
+  .cmark.top    { top: 6mm;    left: 50%; width: .35mm; height: 3.5mm; transform: translateX(-50%); }
+  .cmark.bottom { bottom: 6mm; left: 50%; width: .35mm; height: 3.5mm; transform: translateX(-50%); }
+  .cmark.left   { left: 6mm;   top: 50%;  height: .35mm; width: 3.5mm; transform: translateY(-50%); }
+  .cmark.right  { right: 6mm;  top: 50%;  height: .35mm; width: 3.5mm; transform: translateY(-50%); }
+
+  /* ===== 図面エリア（2図）===== */
+  .views {
+    display: grid; grid-template-columns: 1fr 1fr;
+    min-height: 0; padding: 5mm 5mm 4mm;
+    gap: 0;
+  }
+  .view {
+    display: grid; grid-template-rows: auto 1fr;
+    min-width: 0; min-height: 0;
+    padding: 0 5mm;
+  }
+  .view + .view { border-left: .2mm solid var(--hair); }
+
+  .view-label {
+    display: flex; align-items: center; gap: 3mm;
+    padding-bottom: 2.5mm; margin-bottom: 1mm;
+    border-bottom: .35mm solid var(--ink);
+  }
+  .view-label .idx {
+    font-family: var(--mono); font-weight: 600; font-size: 3mm;
+    color: var(--paper); background: var(--accent);
+    padding: .6mm 1.6mm; letter-spacing: .04em;
+  }
+  .view-label .ja { font-weight: 700; font-size: 4.2mm; letter-spacing: .04em; }
+  .view-label .scale {
+    margin-left: auto; font-family: var(--mono); font-size: 2.8mm;
+    color: var(--ink-2); letter-spacing: .02em;
+  }
+
+  .canvas { position: relative; min-height: 0; min-width: 0; }
+  .canvas svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+
+  /* ===== 表題欄（タイトルブロック）===== */
+  .title-block {
+    display: grid; grid-template-columns: 70mm 1fr;
+    border-top: .5mm solid var(--ink);
+    height: 30mm;
+  }
+
+  /* 左: マストヘッド + 注記 */
+  .tb-brand {
+    padding: 3mm 5mm; border-right: .5mm solid var(--ink);
+    display: flex; flex-direction: column; justify-content: space-between;
+  }
+  .tb-brand .mark {
+    font-family: var(--mono); font-weight: 600; font-size: 3mm;
+    letter-spacing: .34em; color: var(--ink);
+  }
+  .tb-brand .mark b { color: var(--accent); }
+  .tb-brand .title-jp { font-weight: 700; font-size: 5mm; letter-spacing: .06em; line-height: 1.1; }
+  .tb-brand .note {
+    font-size: 2.5mm; color: var(--ink-2); line-height: 1.5;
+    border-top: .2mm solid var(--hair); padding-top: 1.5mm;
+  }
+
+  /* 右: スペックグリッド */
+  .tb-spec { display: grid; grid-template-columns: repeat(6, 1fr); }
+  .tb-cell {
+    border-left: .2mm solid var(--hair); border-top: .2mm solid var(--hair);
+    padding: 1.6mm 2.4mm; display: flex; flex-direction: column; gap: .8mm;
+    min-width: 0;
+  }
+  .tb-cell:nth-child(-n+6) { border-top: 0; }
+  .tb-cell.span2 { grid-column: span 2; }
+  .tb-cell.span3 { grid-column: span 3; }
+  .tb-cell .k {
+    font-family: var(--mono); font-size: 2.1mm; letter-spacing: .12em;
+    color: var(--ink-2); text-transform: uppercase;
+  }
+  .tb-cell .v {
+    font-weight: 500; font-size: 3.2mm; letter-spacing: .01em;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .tb-cell .v.num { font-family: var(--mono); font-weight: 500; }
+
+  /* ===== SVG 共通スタイル ===== */
+  svg text { font-family: var(--jp); }
+  .dim, .dim-sm { font-family: var(--mono); font-weight: 500; fill: var(--ink); }
+  .dim    { font-size: 12px; }
+  .dim-sm { font-size: 10px; }
+  .lab     { font-size: 13px; font-weight: 500; fill: var(--ink-2); letter-spacing: .06em; }
+  .callout { font-size: 10px; font-weight: 500; fill: var(--accent); }
+</style>
+</head>
+<body>
+
+<div class="sheet-wrap">
+  <div class="sheet">
+    <div class="grain"></div>
+    <span class="cmark top"></span><span class="cmark bottom"></span>
+    <span class="cmark left"></span><span class="cmark right"></span>
+
+    <div class="frame">
+
+      <!-- ===== 図面エリア ===== -->
+      <main class="views">
+
+        <!-- ① 基本設計図 -->
+        <section class="view">
+          <header class="view-label">
+            <span class="idx">01</span>
+            <span class="ja">単体正面図</span>
+            <span class="scale">SCALE 1:2.5</span>
+          </header>
+          <div class="canvas">
+            <svg viewBox="-64.375 -64.375 318.75 318.75" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <!-- 寸法線 矢印（外向き / 内向き）-->
+                <marker id="a1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L10,5 L0,10 z" fill="#1b1a17"/>
+                </marker>
+                <marker id="a1i" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M10,0 L0,5 L10,10 z" fill="#1b1a17"/>
+                </marker>
+                <clipPath id="clip190v1"><rect x="0" y="0" width="190" height="190"/></clipPath>
+              </defs>
+
+              <!-- 単体ブロック（麻の葉・全壁厚20 / 原図 90°時計回り） -->
+              <g stroke="#1b1a17" fill="none" clip-path="url(#clip190v1)">
+                <g transform="rotate(90 95 95)">
+                  <rect x="10" y="10" width="170" height="170" stroke-width="20" stroke-linejoin="miter"/>
+                  <line x1="190" y1="0"   x2="0"      y2="190"    stroke-width="20"/>
+                  <line x1="0"   y1="0"   x2="55.65"  y2="55.65"  stroke-width="20"/>
+                  <line x1="190" y1="0"   x2="55.65"  y2="55.65"  stroke-width="20"/>
+                  <line x1="0"   y1="190" x2="55.65"  y2="55.65"  stroke-width="20"/>
+                  <line x1="190" y1="0"   x2="134.35" y2="134.35" stroke-width="20"/>
+                  <line x1="190" y1="190" x2="134.35" y2="134.35" stroke-width="20"/>
+                  <line x1="0"   y1="190" x2="134.35" y2="134.35" stroke-width="20"/>
+                </g>
+              </g>
+
+              <!-- 内心ノード -->
+              <g fill="#b2392c" stroke="none">
+                <circle cx="55.65"  cy="134.35" r="2.5"/>
+                <circle cx="134.35" cy="55.65"  r="2.5"/>
+              </g>
+
+              <!-- 寸法 -->
+              <g stroke="#1b1a17" fill="none" stroke-width="0.375">
+                <g stroke="#cbc7bc">
+                  <line x1="0"   y1="190" x2="0"   y2="215"/>
+                  <line x1="190" y1="190" x2="190" y2="215"/>
+                  <line x1="0"   y1="0"   x2="-27" y2="0"/>
+                  <line x1="0"   y1="190" x2="-27" y2="190"/>
+                  <line x1="0"   y1="0"   x2="0"   y2="-18"/>
+                  <line x1="20"  y1="0"   x2="20"  y2="-18"/>
+                  <line x1="0"     y1="0"      x2="0"     y2="-39"/>
+                  <line x1="55.65" y1="134.35" x2="55.65" y2="-39"/>
+                </g>
+                <line x1="0" y1="210" x2="190" y2="210" marker-start="url(#a1i)" marker-end="url(#a1)"/>
+                <line x1="-23" y1="0" x2="-23" y2="190" marker-start="url(#a1i)" marker-end="url(#a1)"/>
+                <line x1="0" y1="-14" x2="20" y2="-14" marker-start="url(#a1i)" marker-end="url(#a1)"/>
+                <line x1="0" y1="-35" x2="55.65" y2="-35" marker-start="url(#a1i)" marker-end="url(#a1)"/>
+              </g>
+              <text x="95" y="206" text-anchor="middle" class="dim" style="font-size:6px">190</text>
+              <text x="-26" y="95" text-anchor="middle" class="dim" style="font-size:6px" transform="rotate(-90 -26 95)">190</text>
+              <text x="10" y="-17" text-anchor="middle" class="dim-sm" style="font-size:5px">20</text>
+              <text x="28" y="-37" text-anchor="middle" class="dim-sm" style="font-size:5px">55.65</text>
+              <text x="23" y="-9" class="callout" style="font-size:5px">全壁厚 t</text>
+              <text x="62" y="-33" class="callout" style="font-size:5px">内心 ＝ 辺長×0.2929</text>
+            </svg>
+          </div>
+        </section>
+
+        <!-- ② 製作図 -->
+        <section class="view">
+          <header class="view-label">
+            <span class="idx">02</span>
+            <span class="ja">2×2 タイリング図</span>
+            <span class="scale">SCALE 1:5</span>
+          </header>
+          <div class="canvas">
+            <svg viewBox="-128.75 -128.75 637.5 637.5" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <marker id="a2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L10,5 L0,10 z" fill="#1b1a17"/>
+                </marker>
+                <marker id="a2i" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M10,0 L0,5 L10,10 z" fill="#1b1a17"/>
+                </marker>
+                <clipPath id="clip190"><rect x="0" y="0" width="190" height="190"/></clipPath>
+                <!-- 単体ブロック（全壁厚20） -->
+                <g id="blk190" stroke="#1b1a17" fill="none" clip-path="url(#clip190)">
+                  <g transform="rotate(90 95 95)">
+                    <rect x="10" y="10" width="170" height="170" stroke-width="20" stroke-linejoin="miter"/>
+                    <line x1="190" y1="0"   x2="0"      y2="190"    stroke-width="20"/>
+                    <line x1="0"   y1="0"   x2="55.65"  y2="55.65"  stroke-width="20"/>
+                    <line x1="190" y1="0"   x2="55.65"  y2="55.65"  stroke-width="20"/>
+                    <line x1="0"   y1="190" x2="55.65"  y2="55.65"  stroke-width="20"/>
+                    <line x1="190" y1="0"   x2="134.35" y2="134.35" stroke-width="20"/>
+                    <line x1="190" y1="190" x2="134.35" y2="134.35" stroke-width="20"/>
+                    <line x1="0"   y1="190" x2="134.35" y2="134.35" stroke-width="20"/>
+                  </g>
+                </g>
+              </defs>
+
+              <!-- 2×2 鏡像タイリング（4枚で1デザイン） -->
+              <use href="#blk190" x="0" y="0"/>
+              <g transform="translate(380,0) scale(-1,1)"><use href="#blk190"/></g>
+              <g transform="translate(0,380) scale(1,-1)"><use href="#blk190"/></g>
+              <g transform="translate(380,380) scale(-1,-1)"><use href="#blk190"/></g>
+
+              <!-- タイル境界ガイド -->
+              <g stroke="#9a958a" stroke-width="0.6" stroke-dasharray="5,6" fill="none">
+                <line x1="190" y1="0" x2="190" y2="380"/>
+                <line x1="0" y1="190" x2="380" y2="190"/>
+              </g>
+
+              <!-- 寸法 -->
+              <g stroke="#1b1a17" fill="none" stroke-width="0.75">
+                <g stroke="#cbc7bc">
+                  <line x1="0"   y1="380" x2="0"   y2="440"/>
+                  <line x1="190" y1="380" x2="190" y2="405"/>
+                  <line x1="380" y1="380" x2="380" y2="440"/>
+                  <line x1="0"   y1="0"   x2="-44" y2="0"/>
+                  <line x1="0"   y1="380" x2="-44" y2="380"/>
+                  <line x1="170" y1="0"   x2="170" y2="-26"/>
+                  <line x1="210" y1="0"   x2="210" y2="-26"/>
+                </g>
+                <line x1="0"   y1="400" x2="190" y2="400" marker-start="url(#a2i)" marker-end="url(#a2)"/>
+                <line x1="190" y1="400" x2="380" y2="400" marker-start="url(#a2i)" marker-end="url(#a2)"/>
+                <line x1="0" y1="430" x2="380" y2="430" marker-start="url(#a2i)" marker-end="url(#a2)"/>
+                <line x1="-40" y1="0" x2="-40" y2="380" marker-start="url(#a2i)" marker-end="url(#a2)"/>
+                <line x1="170" y1="-20" x2="210" y2="-20" marker-start="url(#a2i)" marker-end="url(#a2)"/>
+              </g>
+              <text x="95" y="396" text-anchor="middle" class="dim" style="font-size:12px">190</text>
+              <text x="285" y="396" text-anchor="middle" class="dim" style="font-size:12px">190</text>
+              <text x="190" y="426" text-anchor="middle" class="dim" style="font-size:12px">380</text>
+              <text x="-46" y="190" text-anchor="middle" class="dim" style="font-size:12px" transform="rotate(-90 -46 190)">380</text>
+              <text x="190" y="-24" text-anchor="middle" class="dim-sm" style="font-size:10px">40</text>
+              <text x="232" y="-15" class="callout" style="font-size:10px">接合壁厚 20＋20＝40</text>
+              <text x="190" y="-52" text-anchor="middle" class="callout" style="font-size:11px">4枚で1デザイン（2×2 鏡像配置）</text>
+            </svg>
+          </div>
+        </section>
+
+      </main>
+
+      <!-- ===== 表題欄 ===== -->
+      <footer class="title-block">
+        <div class="tb-brand">
+          <div class="mark">HANA&middot;<b>BLOCK</b></div>
+          <div class="title-jp">花ブロック<br>製作図</div>
+          <div class="note">本図は製作指示用。寸法は mm。縮尺は参考で寸法値を優先。</div>
+        </div>
+
+        <div class="tb-spec">
+          <div class="tb-cell span3"><span class="k">PATTERN / 意匠</span><span class="v">麻の葉（四つ組） slug: asanoha</span></div>
+          <div class="tb-cell span2"><span class="k">SIZE / 寸法</span><span class="v num">190 × 190 × 100</span></div>
+          <div class="tb-cell"><span class="k">SCALE</span><span class="v num">1:2.5</span></div>
+
+          <div class="tb-cell"><span class="k">壁厚 t</span><span class="v num">20</span></div>
+          <div class="tb-cell span2"><span class="k">接合壁厚</span><span class="v num">20+20=40</span></div>
+          <div class="tb-cell"><span class="k">開口率</span><span class="v num">約27.2%</span></div>
+          <div class="tb-cell"><span class="k">材質</span><span class="v">ｺﾝｸﾘｰﾄ</span></div>
+          <div class="tb-cell"><span class="k">DATE</span><span class="v num">2026-06-15</span></div>
+        </div>
+      </footer>
+
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
