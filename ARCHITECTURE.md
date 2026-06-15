@@ -6,7 +6,8 @@ BRIEF.md  CONTEXT.md  ARCHITECTURE.md  DESIGN.md  README.md
 docs/adr/                 個別決定の記録（例: 麻の葉の壁厚決定）
 reference/                参考資料
   catalog-250707.pdf
-template/                 土台（共通HTML+CSS、部品SVG: marker / 寸法線 / spec表 等）
+template/                 土台
+  template.html           製作図のコピー元（図面枠＋表題欄の図面シート。CSS・寸法マーカー等をインライン同梱）
 patterns/                 意匠ごとの成果物
   asanoha/                麻の葉
     asanoha-base.svg              基本設計図（幾何構成。麻の葉は数が少ないので1か所に集約）
@@ -31,6 +32,8 @@ patterns/                 意匠ごとの成果物
 - 麻の葉の基本設計はまとまった量がないので、サイズ別に分けず `patterns/asanoha/` に集約する。
 
 ## 作り方（軽量・手作図）
-- データ駆動の生成器は作らない。**共有テンプレ（`template/`）＋ 手作図**で進める。
-- 真実の源：寸法・壁厚・開口率は docs（BRIEF / DESIGN）に、再利用する作図部品は `template/` の部品SVGに持つ。
+- データ駆動の生成器は作らない。**共有テンプレ（`template/template.html`）を複製 ＋ 手作図**で進める。
+- 製作図は `template/template.html` を `patterns/<slug>/<slug>-<size>.html` に複製し、表題欄の値と SVG 図形だけ差し替えて作る（図面枠・表題欄・共通 defs は触らない）。
+- 真実の源：寸法・壁厚・開口率は docs（BRIEF / DESIGN）に、再利用する作図部品（図面枠・表題欄・寸法マーカー）は `template/template.html` に持つ。
+- file:// で開いて印刷する用途のため、テンプレは1ファイル自己完結（CSS・SVG defs インライン）。外部依存は Google Fonts のみ。
 - 量産フェーズに入ったら生成パイプライン化を再検討する（現時点ではオーバースペック）。
