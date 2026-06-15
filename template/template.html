@@ -47,9 +47,10 @@
 
   @page { size: A4 landscape; margin: 0; }
   @media print {
-    body { background: #fff; }
-    .sheet-wrap { padding: 0; }
-    .sheet { box-shadow: none !important; }
+    /* A4 ぴったりに固定し、端数あふれによる空白2ページ目を防ぐ */
+    html, body { width: 297mm; height: 210mm; margin: 0; padding: 0; overflow: hidden; background: #fff; }
+    .sheet-wrap { width: 297mm; height: 210mm; padding: 0; margin: 0; display: block; }
+    .sheet { box-shadow: none !important; margin: 0; }
     .grain { display: none; }
   }
 
